@@ -23,16 +23,15 @@ The script performs the following steps:
 
 You can install `pyspark` using pip:
 
-```bash
 pip install pyspark
 
-Usage
+## Usage
 To run the script, provide the paths to the source data, schema, and lookup files as command-line arguments:
 python script.py <source_path> <schema_path> <lookup_path>
 **Example:**
 python script.py /path/to/source.csv /path/to/schema.json /path/to/lookup.csv
 
-Classes and Methods
+## Classes and Methods
 Tokenization
 A class to handle tokenization and masking of data fields.
 
@@ -66,7 +65,7 @@ Tokenizes fields in the DataFrame based on the lookup data.
 validate_record_counts(self, spark: SparkSession, final_data: DataFrame, schema: StructType) -> None
 Validates that no records are dropped during data processing by comparing the record count of raw data with the final processed data.
 
-Contribution
+## Contribution
 Feel free to contribute by submitting issues or pull requests. Please ensure that your changes adhere to the existing coding style and include appropriate tests.
 
 This `README.md` should provide a clear and concise overview of the project's purpose, setup, and usage, making it easier for others to understand and use your code.
