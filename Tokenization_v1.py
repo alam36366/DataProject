@@ -182,7 +182,7 @@ def main(args):
     tokenized_data = token_object.tokenize_field(masked_data, tokenize_fields, lookup)
     token_object.validate_record_counts(spark, tokenized_data, schema)
     logger.info("Final Data......... \n")
-    display(tokenized_data)
+    tokenized_data.show(20, False)
     logger.info("Job completed!")
 
 if __name__ == "__main__":
