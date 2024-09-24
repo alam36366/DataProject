@@ -145,12 +145,15 @@ class Tokenization:
             # Read the raw data
             logger.info(f"Reading raw data from {self.source_path}")
             raw_data = spark.read.csv(self.source_path, schema=schema, header=True)
+            
             # Count records in raw data
             raw_data_count = raw_data.count()
             logger.info(f"Record count in raw data: {raw_data_count}")
+            
             # Count records in final data
             final_data_count = final_data.count()
             logger.info(f"Record count in final data: {final_data_count}")
+
             # Validation: Ensure no records are dropped
             if raw_data_count != final_data_count:
                 logger.warning("Record count mismatch! Some records may have been dropped during processing.")
