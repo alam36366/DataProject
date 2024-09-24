@@ -1,0 +1,2 @@
+pyspark==3.5.2
+coverage==7.6.1
