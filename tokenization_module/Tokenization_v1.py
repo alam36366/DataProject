@@ -1,8 +1,7 @@
-import sys
 import logging
 from pyspark.sql import SparkSession, DataFrame
 from pyspark.sql.types import StructType, StructField, IntegerType, StringType, DateType, LongType
-from pyspark.sql.functions import explode, lit, col, broadcast, concat, substring
+from pyspark.sql.functions import *
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -13,13 +12,13 @@ class Tokenization:
     A class to handle tokenization and masking of data fields.
     """
 
-    def __init__(self, args):
+    def __init__(self):
         """
         Initializes the Tokenization class with paths for source data, schema, and lookup.
         """
-        self.source_path = args[0]
-        self.schema = args[1]
-        self.lookup_path = args[2]
+        self.source_path = "./TokenizationProjects/source_data.csv"
+        self.schema = "./TokenizationProjects/schema.json"
+        self.lookup_path = "./TokenizationProjects/lookup.csv"
         logger.info(f"Initialized Tokenization with source_path={self.source_path}, schema={self.schema}, lookup_path={self.lookup_path}")
 
     def get_spark_session(self):
@@ -113,7 +112,7 @@ class Tokenization:
         Masks PII fields in the DataFrame by setting their values to None.
         """
         logger.info("Masking PII fields.")
-        masked_data = data.select(*[lit(None).alias(c) if c in pii_fields else col(c) for c in data.columns])
+        masked_data = data.select(*[lit('PII').alias(c) if c in pii_fields else col(c) for c in data.columns])
         logger.info("PII fields masked.")
         return masked_data
 
@@ -124,8 +123,7 @@ class Tokenization:
         logger.info("Tokenizing fields.")
         try:
             lookup_joined = masked_data.join(broadcast(lookup), masked_data["employee_id"] == lookup["lookup_emp_id"])
-            lookup_col = "account_num"
-            # display(masked_data)
+            lookup_col = "unique_id"
             lookup_joined = lookup_joined.select(*[col(c) for c in masked_data.columns], lookup[lookup_col])
             for field in tokenize_fields:
                 lookup_joined = lookup_joined.withColumn(
@@ -147,15 +145,12 @@ class Tokenization:
             # Read the raw data
             logger.info(f"Reading raw data from {self.source_path}")
             raw_data = spark.read.csv(self.source_path, schema=schema, header=True)
-            
             # Count records in raw data
             raw_data_count = raw_data.count()
             logger.info(f"Record count in raw data: {raw_data_count}")
-            
             # Count records in final data
             final_data_count = final_data.count()
             logger.info(f"Record count in final data: {final_data_count}")
-            
             # Validation: Ensure no records are dropped
             if raw_data_count != final_data_count:
                 logger.warning("Record count mismatch! Some records may have been dropped during processing.")
@@ -167,12 +162,12 @@ class Tokenization:
             raise
 
 
-def main(args):
+def main():
     """
     Main function to execute the tokenization process.
     """
     logger.info("Starting Job.")
-    token_object = Tokenization(args)
+    token_object = Tokenization()
     spark = token_object.get_spark_session()
     schema, fields = token_object.get_schema(spark)
     data = token_object.read_file(spark, schema)
@@ -186,4 +181,4 @@ def main(args):
     logger.info("Job completed!")
 
 if __name__ == "__main__":
-    main(sys.argv[1:])
+    main()

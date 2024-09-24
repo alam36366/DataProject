@@ -1,3 +1,4 @@
 .vscode/
 .coverage
-.tests/__pycache__
+.tests/__pycache__/
+.tokenization_module/__pycache__/

@@ -22,13 +22,13 @@
 	  "pii":true
     },
     {
-      "name": "C_Card",
+      "name": "PAN",
       "type": "long",
       "nullable": true,
 	  "tokenize":true
     },
     {
-      "name": "D_Card",
+      "name": "Phone",
       "type": "long",
       "nullable": true,
 	  "tokenize":true
