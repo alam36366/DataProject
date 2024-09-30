@@ -16,9 +16,9 @@ class Tokenization:
         """
         Initializes the Tokenization class with paths for source data, schema, and lookup.
         """
-        self.source_path = "./TokenizationProjects/source_data.csv"
-        self.schema = "./TokenizationProjects/schema.json"
-        self.lookup_path = "./TokenizationProjects/lookup.csv"
+        self.source_path = "./source_data.csv"
+        self.schema = "./schema.json"
+        self.lookup_path = "./lookup.csv"
         logger.info(f"Initialized Tokenization with source_path={self.source_path}, schema={self.schema}, lookup_path={self.lookup_path}")
 
     def get_spark_session(self):

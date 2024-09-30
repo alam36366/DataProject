@@ -1,4 +1,4 @@
-employee_id,first_name,last_name,DOB,C_Card,D_Card,email,hire_date,department,gender,salary,region_id
+employee_id,first_name,last_name,DOB,PAN,Phone,email,hire_date,department,gender,salary,region_id
 1,Berrie,Manueau,1973-11-10,1111480518409950,2222464188436605,bmanueau0@dion.ne.jp,2006-04-20,Sports,F,154864,4
 2,Aeriell,McNee,1989-12-18,1111947203241677,2222378262563490,amcnee1@google.es,2009-01-26,Tools,F,56752,3
 3,Sydney,Symonds,1978-12-05,1111487826115623,2222025179796703,ssymonds2@hhs.gov,2010-05-17,Clothing,F,95313,4
