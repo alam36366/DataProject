@@ -1,4 +1,4 @@
-# Tokenization Process
+# Encryption Process
 
 This project contains a Python script for tokenizing and masking data fields using Apache Spark. The script processes data from CSV files, applies tokenization and masking based on provided schemas, and validates the data to ensure no records are dropped during processing.
 
