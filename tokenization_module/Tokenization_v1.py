@@ -1,4 +1,6 @@
 import logging
+import requests
+import json
 from pyspark.sql import SparkSession, DataFrame
 from pyspark.sql.types import StructType, StructField, IntegerType, StringType, DateType, LongType
 from pyspark.sql.functions import *
@@ -11,22 +13,49 @@ class Tokenization:
     """
     A class to handle tokenization and masking of data fields.
     """
-
     def __init__(self):
         """
-        Initializes the Tokenization class with paths for source data, schema, and lookup.
+        Initializes the Tokenization class by loading all required files dynamically.
         """
-        self.source_path = "./source_data.csv"
-        self.schema = "./schema.json"
-        self.lookup_path = "./lookup.csv"
-        logger.info(f"Initialized Tokenization with source_path={self.source_path}, schema={self.schema}, lookup_path={self.lookup_path}")
+        # Base URL
+        self.base_url = "https://raw.githubusercontent.com/alam36366/DataProject/main/"
+
+        # File mapping
+        self.files = {
+            "source_data": {"url": self.base_url + "source_data.csv", "file_name": "source_data.csv"},
+            "lookup": {"url": self.base_url + "lookup.csv", "file_name": "lookup.csv"},
+            "schema": {"url": self.base_url + "schema.json", "file_name": "schema.json"}
+        }
+
+        try:
+            # Fetch and save files dynamically
+            for key, file_info in self.files.items():
+                response = requests.get(file_info["url"])
+                if response.status_code == 200:
+                    if key == "schema":
+                        # Save JSON schema
+                        self.schema = response.json()
+                        with open(file_info["file_name"], "w") as f:
+                            json.dump(self.schema, f, indent=4)
+                        logger.info(f"Schema saved to {file_info['file_name']}")
+                    else:
+                        # Save CSV files
+                        with open(file_info["file_name"], "wb") as file:
+                            file.write(response.content)
+                        logger.info(f"{file_info['file_name']} downloaded successfully.")
+                else:
+                    raise Exception(f"Failed to fetch {file_info['file_name']}")
+
+        except Exception as e:
+            logger.error(f"Error in loading files: {e}")
+            raise
 
     def get_spark_session(self):
         """
         Creates and returns a SparkSession.
         """
         logger.info("Creating Spark session.")
-        spark = SparkSession.builder.appName("tokenization").getOrCreate()
+        spark = SparkSession.builder.master("local[*]").appName("tokenization").getOrCreate()
         logger.info("Spark session created.")
         return spark
 
@@ -36,7 +65,7 @@ class Tokenization:
         """
         logger.info("Reading schema from JSON.")
         try:
-            schema_df = spark.read.option("multiline", "true").json(self.schema)
+            schema_df = spark.read.option("multiline", "true").json(self.files["schema"]["file_name"])
             schema_df = schema_df.withColumn('field_exp', explode(schema_df.fields))
             schema_df = schema_df.select('field_exp.*')
             fields = schema_df.rdd.map(lambda row: row.asDict()).collect()
@@ -52,7 +81,7 @@ class Tokenization:
             logger.info("Schema obtained successfully.")
             return StructType(struct_fields), fields
         except Exception as e:
-            logger.error(f"Error reading schema: {e}")
+            logger.error(f"Error in reading schema: {e}")
             raise
 
     def _get_spark_type(self, field_type):
@@ -74,9 +103,9 @@ class Tokenization:
         """
         Reads data from a CSV file into a DataFrame using the provided schema.
         """
-        logger.info(f"Reading file from {self.source_path}.")
+        logger.info(f"Reading file from {self.files['source_data']['file_name']}.")
         try:
-            df = spark.read.csv(self.source_path, schema=schema, header=True)
+            df = spark.read.csv(self.files["source_data"]["file_name"], schema=schema, header=True)
             logger.info("File read successfully.")
             return df
         except Exception as e:
@@ -87,9 +116,9 @@ class Tokenization:
         """
         Reads lookup data from a CSV file into a DataFrame.
         """
-        logger.info(f"Reading lookup file from {self.lookup_path}.")
+        logger.info(f"Reading lookup file from {self.files['lookup']['file_name']}.")
         try:
-            lookup_df = spark.read.csv(self.lookup_path, inferSchema=True, header=True)
+            lookup_df = spark.read.csv(self.files["lookup"]["file_name"], inferSchema=True, header=True)
             logger.info("Lookup file read successfully.")
             return lookup_df
         except Exception as e:
@@ -142,15 +171,11 @@ class Tokenization:
         the record count of raw data with the final processed data.
         """
         try:
-            # Read the raw data
-            logger.info(f"Reading raw data from {self.source_path}")
-            raw_data = spark.read.csv(self.source_path, schema=schema, header=True)
+            raw_data = spark.read.csv(self.files["source_data"]["file_name"], schema=schema, header=True)
             
-            # Count records in raw data
             raw_data_count = raw_data.count()
             logger.info(f"Record count in raw data: {raw_data_count}")
             
-            # Count records in final data
             final_data_count = final_data.count()
             logger.info(f"Record count in final data: {final_data_count}")
 
@@ -181,6 +206,7 @@ def main():
     token_object.validate_record_counts(spark, tokenized_data, schema)
     logger.info("Final Data......... \n")
     tokenized_data.show(20, False)
+    # tokenized_data.coalesce(1).write.mode('overwrite').parquet("./TokenizationProjects/Output")
     logger.info("Job completed!")
 
 if __name__ == "__main__":
